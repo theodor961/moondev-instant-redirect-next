@@ -1,14 +1,22 @@
 /**
  * Redirect config — single source of truth for short-link / QR slugs.
- * Used by /[slug] route handler. Add new slugs here; no DB required.
+ * Used by /[slug]. Add new slugs here; no DB required.
  *
  * Either:
  * - Same-origin with query params: path + optional query map
  * - External link: url only (no params appended)
+ *
+ * Set `embed: true` to open the destination in-site via iframe + Moondev footer
+ * instead of an HTTP redirect. The short URL itself stays unchanged (e.g. /ec).
  */
 
+type RedirectOptions = {
+  /** When true, render destination in an iframe with a Moondev footer. */
+  embed?: boolean;
+};
+
 /** Same-origin redirect with optional query params. */
-export type RedirectInternal = {
+export type RedirectInternal = RedirectOptions & {
   /** Optional path (e.g. "/upload"). Defaults to "/". */
   path?: string;
   /** Optional query string params appended to the destination. */
@@ -16,7 +24,7 @@ export type RedirectInternal = {
 };
 
 /** External redirect; destination used as-is. */
-export type RedirectExternal = {
+export type RedirectExternal = RedirectOptions & {
   url: string;
 };
 
@@ -32,9 +40,13 @@ function isExternalRedirect(t: RedirectTarget): t is RedirectExternal {
  * Examples:
  *   sticker: { path: "/upload", query: { utm_source: "qr", utm_content: "sticker" } }
  *   instagram: { url: "https://www.instagram.com/..." }
+ *   wedding: { url: "https://...", embed: true }
  */
 const REDIRECT_MAP: Record<string, RedirectTarget> = {
-  ec: { url: "https://www.wedtrove.com/event/YFvb0XMLLu" },
+  ec: {
+    url: "https://www.wedtrove.com/event/YFvb0XMLLu",
+    embed: true,
+  },
 };
 
 /** Normalized slug (lowercase) → target. Lookup is case-insensitive. */
