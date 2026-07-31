@@ -1,7 +1,7 @@
 "use client";
 
 import { Poppins } from "next/font/google";
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -43,28 +43,58 @@ function PoweredByBar() {
 }
 
 /**
- * Overlay bar + scrollable destination.
+ * Direct cross-origin iframe (no HTML proxy — avoids CORS breakage).
  *
- * Mobile: cross-origin iframes often cannot scroll internally. Use a tall
- * iframe inside a touch-scroll wrapper so the *wrapper* scrolls, while the
- * Moondev bar stays overlaid (pointer-events-none).
- *
- * Desktop: full-viewport iframe with normal internal scrolling.
+ * Mobile: outer wrapper scrolls; iframe height is a modest multiple of the
+ * viewport so touch-scroll works on iOS without a huge empty 5000px frame.
+ * Desktop: viewport iframe with normal internal scrolling.
  */
 export function EmbedShell({ src, title }: EmbedShellProps) {
   const mobile = useSyncExternalStore(subscribe, isMobile, () => true);
   const iframeTitle = title ?? "Embedded content";
+  const [mobileFramePx, setMobileFramePx] = useState(0);
 
   useEffect(() => {
-    if (!title) return;
-    document.title = title;
+    if (title) document.title = title;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const prev = {
+      htmlOverflow: html.style.overflow,
+      bodyOverflow: body.style.overflow,
+      bodyBg: body.style.backgroundColor,
+    };
+
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.backgroundColor = "#fff";
+
+    return () => {
+      html.style.overflow = prev.htmlOverflow;
+      body.style.overflow = prev.bodyOverflow;
+      body.style.backgroundColor = prev.bodyBg;
+    };
   }, [title]);
+
+  useEffect(() => {
+    if (!mobile) return;
+
+    const update = () => {
+      // ~2 viewports: enough for typical event pages + iOS wrapper scroll,
+      // without the huge empty gap from a 5000px frame.
+      setMobileFramePx(Math.round(window.innerHeight * 2));
+    };
+
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [mobile]);
 
   if (mobile) {
     return (
-      <div className="relative h-dvh w-full bg-white">
+      <div className="fixed inset-0 z-50 bg-white">
         <div
-          className="h-full w-full overflow-y-auto overscroll-contain"
+          className="absolute inset-0 overflow-y-auto overscroll-contain"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           <iframe
@@ -76,8 +106,8 @@ export function EmbedShell({ src, title }: EmbedShellProps) {
             style={{
               width: "1px",
               minWidth: "100%",
-              height: "5000px",
               display: "block",
+              height: mobileFramePx ? `${mobileFramePx}px` : "200vh",
             }}
           />
         </div>
@@ -87,7 +117,7 @@ export function EmbedShell({ src, title }: EmbedShellProps) {
   }
 
   return (
-    <div className="relative h-dvh w-full bg-white">
+    <div className="fixed inset-0 z-50 bg-white">
       <iframe
         src={src}
         title={iframeTitle}
