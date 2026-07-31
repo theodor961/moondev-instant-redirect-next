@@ -1,7 +1,7 @@
 "use client";
 
 import { Poppins } from "next/font/google";
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -10,6 +10,7 @@ const poppins = Poppins({
 
 type EmbedShellProps = {
   src: string;
+  title?: string;
 };
 
 function subscribe() {
@@ -50,8 +51,14 @@ function PoweredByBar() {
  *
  * Desktop: full-viewport iframe with normal internal scrolling.
  */
-export function EmbedShell({ src }: EmbedShellProps) {
+export function EmbedShell({ src, title }: EmbedShellProps) {
   const mobile = useSyncExternalStore(subscribe, isMobile, () => true);
+  const iframeTitle = title ?? "Embedded content";
+
+  useEffect(() => {
+    if (!title) return;
+    document.title = title;
+  }, [title]);
 
   if (mobile) {
     return (
@@ -62,7 +69,7 @@ export function EmbedShell({ src }: EmbedShellProps) {
         >
           <iframe
             src={src}
-            title="Embedded content"
+            title={iframeTitle}
             className="block border-0 bg-white"
             allow="accelerometer; autoplay; camera; clipboard-write; encrypted-media; fullscreen; geolocation; gyroscope; microphone; payment; picture-in-picture; usb"
             referrerPolicy="no-referrer-when-downgrade"
@@ -83,7 +90,7 @@ export function EmbedShell({ src }: EmbedShellProps) {
     <div className="relative h-dvh w-full bg-white">
       <iframe
         src={src}
-        title="Embedded content"
+        title={iframeTitle}
         className="absolute inset-0 h-full w-full border-0 bg-white"
         allow="accelerometer; autoplay; camera; clipboard-write; encrypted-media; fullscreen; geolocation; gyroscope; microphone; payment; picture-in-picture; usb"
         referrerPolicy="no-referrer-when-downgrade"

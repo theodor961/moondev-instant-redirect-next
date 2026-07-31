@@ -13,6 +13,8 @@
 type RedirectOptions = {
   /** When true, render destination in an iframe with a Moondev footer. */
   embed?: boolean;
+  /** Optional browser tab / document title for this slug. */
+  title?: string;
 };
 
 /** Same-origin redirect with optional query params. */
@@ -40,12 +42,13 @@ function isExternalRedirect(t: RedirectTarget): t is RedirectExternal {
  * Examples:
  *   sticker: { path: "/upload", query: { utm_source: "qr", utm_content: "sticker" } }
  *   instagram: { url: "https://www.instagram.com/..." }
- *   wedding: { url: "https://...", embed: true }
+ *   wedding: { url: "https://...", embed: true, title: "Camil & Elissa's Wedding" }
  */
 const REDIRECT_MAP: Record<string, RedirectTarget> = {
   ec: {
     url: "https://www.wedtrove.com/event/YFvb0XMLLu",
     embed: true,
+    title: "Camil & Elissa's Wedding",
   },
 };
 
