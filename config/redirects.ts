@@ -45,10 +45,10 @@ function isExternalRedirect(t: RedirectTarget): t is RedirectExternal {
  *   wedding: { url: "https://...", embed: true, title: "Camil & Elissa's Wedding" }
  */
 const REDIRECT_MAP: Record<string, RedirectTarget> = {
-  ec: {
+  ee: {
     url: "https://www.wedtrove.com/event/YFvb0XMLLu",
     embed: true,
-    title: "Camil & Elissa's Wedding",
+    title: "Etien & Elyse's Wedding",
   },
 };
 
